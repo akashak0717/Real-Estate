@@ -36,7 +36,7 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                     sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
                     sh "docker push ${DOCKER_IMAGE}:latest"
                 }
@@ -47,29 +47,24 @@ pipeline {
             steps {
                 echo 'Deploying to AWS EC2...'
                 withCredentials([
-                    string(credentialsId: 'EC2_PUBLIC_IP', variable: 'EC2_HOST')
+                    string(credentialsId: 'EC2_PUBLIC_IP', variable: 'EC2_HOST'),
+                    sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'SSH_KEY')
                 ]) {
-                    sshagent(['ec2-ssh-key']) {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                                docker pull ${DOCKER_IMAGE}:latest
-                                docker stop real-estate || true
-                                docker rm real-estate || true
-                                docker run -d \
-                                    --name real-estate \
-                                    -p 80:80 \
-                                    --restart always \
-                                    ${DOCKER_IMAGE}:latest
-                            '
-                        """
-                    }
+                    sh """
+                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY ${EC2_USER}@${EC2_HOST} '
+                            docker pull ${DOCKER_IMAGE}:latest &&
+                            docker stop real-estate || true &&
+                            docker rm real-estate || true &&
+                            docker run -d --name real-estate -p 80:80 --restart always ${DOCKER_IMAGE}:latest
+                        '
+                    """
                 }
             }
         }
 
         stage('Cleanup') {
             steps {
-                echo 'Removing local Docker images...'
+                echo 'Cleaning up local Docker images...'
                 sh "docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG} || true"
             }
         }
@@ -87,8 +82,6 @@ pipeline {
         }
     }
 }
-```
-
 ---
 
 ### Every Stage Explained
