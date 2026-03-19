@@ -1,8 +1,32 @@
-# React + Vite
+# 🏠 Real Estate App — DevOps CI/CD Pipeline on AWS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern and responsive Real Estate web application built with
+React.js, Vite, and Tailwind CSS — fully containerised with Docker
+and deployed on AWS EC2 using an automated Jenkins CI/CD pipeline.
 
-Currently, two official plugins are available:
+## ✨ App Features
+- 🏘️ Property Listings — Browse available properties
+- 🏡 Property Detail Page — Full info and pricing
+- 🦸 Hero / Landing Section — Clean homepage with CTA
+- 🔐 Login / Signup — User authentication flow
+- 📬 Contact Form — Reach out to agents
+- 📱 Fully Responsive — Mobile, tablet and desktop
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🛠️ Tech Stack
+### Frontend
+- React.js, Vite, Tailwind CSS, Framer Motion
+
+### DevOps & Cloud
+- Docker + Nginx (containerisation)
+- Jenkins (CI/CD pipeline with GitHub Webhook + SCM)
+- AWS EC2 (hosting)
+- Ansible (server configuration & deployment)
+
+## 🏗️ CI/CD Pipeline Flow
+Push code → GitHub Webhook triggers Jenkins →
+Build Docker image → Push to Docker Hub →
+Ansible deploys to AWS EC2 → App is live ✅
+
+## 🚀 Run Locally
+npm install
+npm run dev
