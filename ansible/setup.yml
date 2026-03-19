@@ -1,0 +1,91 @@
+---
+- name: Configure EC2 and Deploy Real Estate App
+  hosts: webserver
+  become: yes
+
+  vars:
+    docker_image: "akashak0717/real-estate-app:latest"
+    container_name: "real-estate"
+
+  tasks:
+
+    # ── Step 1: Update the server ──────────────────────
+    - name: Update all packages
+      yum:
+        name: "*"
+        state: latest
+
+    # ── Step 2: Install Docker ─────────────────────────
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    # ── Step 3: Start Docker service ───────────────────
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    # ── Step 4: Add ec2-user to docker group ───────────
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+
+    # ── Step 5: Pull latest Docker image ───────────────
+    - name: Pull latest image from Docker Hub
+      command: docker pull {{ docker_image }}
+
+    # ── Step 6: Stop old container ─────────────────────
+    - name: Stop existing container
+      command: docker stop {{ container_name }}
+      ignore_errors: yes
+
+    # ── Step 7: Remove old container ───────────────────
+    - name: Remove existing container
+      command: docker rm {{ container_name }}
+      ignore_errors: yes
+
+    # ── Step 8: Run new container ──────────────────────
+    - name: Run new container
+      command: >
+        docker run -d
+        --name {{ container_name }}
+        -p 80:80
+        --restart always
+        {{ docker_image }}
+
+    # ── Step 9: Verify ─────────────────────────────────
+    - name: Check container is running
+      command: docker ps -f name={{ container_name }}
+      register: result
+
+    - name: Print container status
+      debug:
+        msg: "{{ result.stdout }}"
+```
+
+---
+
+### Every block explained
+
+`hosts: webserver` → Runs on the server defined in `inventory.ini`
+
+`become: yes` → Run all tasks as `sudo`
+
+`vars` → Variables used throughout — change image name here if needed
+
+`yum` → Amazon Linux package manager (like `apt` for Ubuntu) ✅
+
+`systemd` → Starts Docker and makes it auto-start on reboot
+
+`ignore_errors: yes` → Don't fail if container doesn't exist yet (first run)
+
+`command: docker run -d` → Runs container in background, port 80, auto-restarts
+
+`register: result` → Saves command output into a variable
+
+`debug` → Prints the result so you can see if it's running
